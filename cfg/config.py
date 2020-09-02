@@ -3,7 +3,7 @@
 * e-mail: yuginboy@gmail.com
 * Last modified: 31.08.2020
 '''
-from  lib.dir_and_file_operations import PROJECT_FOLDER_PATH, get_upper_folder_name
+from lib_pkg.dir_and_file_operations import PROJECT_FOLDER_PATH, get_upper_folder_name
 import os
 
 print('PROJECT_FOLDER_PATH:', PROJECT_FOLDER_PATH)
@@ -35,13 +35,13 @@ PATH_TO_SHARE_PROJECT_FOLDER_ON_REMOTE_HOST = '/mnt/nfsv4/abel_share/free_share/
 SSH_COMMAND_CONNECT_TO_REMOTE_HOST = 'ssh wien2k@10.88.0.245'  # wien2k_abel
 # SSH_COMMAND_CONNECT_TO_REMOTE_HOST = 'ssh wien2k@10.88.0.244'  # wien2k_paradox
 
+# --- START Block: Computation Limit -----
 # max distance for structure rebuild procedure:
 TARGET_ATOM_MAX_DISTANCE = 2
+# --- END Block: Computation Limit -----
 
 # number of FEFF calculation processes (SLURM: #SBATCH -n 4):
 NUMBER_OF_TASKS = 8
-
-
 
 
 if __name__ == '__main__':

@@ -4,9 +4,9 @@
 * Last modified: 31.08.2020
 '''
 from cfg.config import *
-from lib.generate_feff_inp import FEFFVariablesReplacer
-from lib.generate_run_initial import SLURMVariablesReplacer
-from lib.dir_and_file_operations import *
+from lib_pkg.generate_feff_inp import FEFFVariablesReplacer
+from lib_pkg.generate_run_initial import SLURMVariablesReplacer
+from lib_pkg.dir_and_file_operations import *
 import shutil
 import subprocess
 
