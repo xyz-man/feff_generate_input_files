@@ -57,10 +57,7 @@ or simple way to create subfolder venv (with python packages) inside the current
     $ pip install -r requirements.txt
 
   
-### 4. Setup your configuration file
- Open `cfg/config.py` file and edit needed variables.
- 
- ### 5. Setup password-free ssh configuration to connect on remote server
+ ### 4. Setup password-free ssh configuration to connect on remote server
  On your localhost execute the next command to generate a pair of authentication keys. Do not enter a passphrase:
     
     $ ssh-keygen -t rsa
@@ -89,7 +86,7 @@ or simple way to create subfolder venv (with python packages) inside the current
     Now try logging into the machine, with:   "ssh 'wien2k@10.88.0.245'"
     and check to make sure that only the key(s) you wanted were added.
     
- ### 6. Setup password-free NFS share folder for project directories
+ ### 5. Setup password-free NFS share folder for project directories
  On your localhost and remote host install nfs client service:
         
         $apt-get install nfs-common
@@ -133,3 +130,17 @@ directory `/mnt/nfsv4/abel_share` was created earlier on localhost and remote ho
     $ mkdir -p /mnt/nfsv4/abel_share
 
 You can use another folder name.
+
+If NFS is configured correctly on client hosts, the `mount` command shows that you have mounted an NFS share::
+
+    $ /home/wien2k# mount
+    sysfs on /sys type sysfs (rw,nosuid,nodev,noexec,relatime)
+    proc on /proc type proc (rw,nosuid,nodev,noexec,relatime)
+    udev on /dev type devtmpfs (rw,relatime,size=10240k,nr_inodes=2315885,mode=755)
+    .....
+    10.88.0.251:/ on /mnt/nfsv4/abel_share type nfs4 (rw,relatime,vers=4,rsize=8192,wsize=81
+    92,namlen=255,soft,proto=tcp,timeo=600,retrans=2,sec=sys,clientaddr=10.88.0.245,minorver
+    sion=0,local_lock=none,addr=10.88.0.251)
+    
+### 6. Setup configuration file
+ Open `cfg/config.py` file and edit needed variables.  

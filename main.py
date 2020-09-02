@@ -13,9 +13,14 @@ import subprocess
 
 class Project:
     name = PROJECT_NAME
-    project_dir_path = create_out_data_folder(PROJECT_DIR_PATH, first_part_of_folder_name=name)
+    project_dir_path = None
+
+    def init(self):
+        if self.project_dir_path is None:
+            self.project_dir_path = create_out_data_folder(PROJECT_DIR_PATH, first_part_of_folder_name=self.name)
 
     def run(self):
+        self.init()
         # start cycle for generate folders with feff.inp and run_initial.sl files:
         distance = 0
         target_atom_id = 1
@@ -48,17 +53,37 @@ class Project:
 
             if distance <= TARGET_ATOM_MAX_DISTANCE:
                 # if distance is correct run sbatch:
-                self.run_sbatch(dir_path=os.path.join(self.project_dir_path, new_sub_folder_name))
+                self.run_sbatch(
+                    dir_path=os.path.join(self.project_dir_path, new_sub_folder_name),
+                )
 
             target_atom_id = target_atom_id + 1
 
     def run_sbatch(self, dir_path=None):
-        if dir_path is not None:
-            os.chdir(dir_path)
-            subprocess.call('sbatch ./run_initial.sl', shell=True)
+        if START_CALCULATION:
+            if dir_path is not None:
+                if 'local' == TYPE_OF_CALCULATION:
+                    os.chdir(dir_path)
+                    subprocess.call('sbatch ./run_initial.sl', shell=True)
+                if 'remote' == TYPE_OF_CALCULATION:
+                    dir_path_on_remote_host = os.path.join(
+                        PATH_TO_SHARE_PROJECT_FOLDER_ON_REMOTE_HOST,
+                        get_upper_folder_name(dir_path),
+                        os.path.basename(dir_path),
+                    )
+                    print('dir_path_on_remote_host: ', dir_path_on_remote_host)
+                    ssh_command = '{ssh} << EOF \n cd {dir}\n pwd\n sbatch ./run_initial.sl \nEOF'.format(
+                        ssh=SSH_COMMAND_CONNECT_TO_REMOTE_HOST,
+                        dir=dir_path_on_remote_host,
+                    )
+                    subprocess.call(ssh_command, shell=True)
 
 
 if __name__ == '__main__':
     print('-> you run ', __file__, ' file in the main mode (Top-level script environment)')
     obj = Project()
     obj.run()
+    # ssh_command = 'ssh wien2k@10.88.0.245 << EOF \n cd ~\n pwd\n date\n hostname\nEOF'
+    # print(ssh_command)
+    # subprocess.call(ssh_command, shell=True)
+
