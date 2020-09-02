@@ -3,6 +3,7 @@
 * e-mail: yuginboy@gmail.com
 * Last modified: 31.08.2020
 '''
+from cfg.class_cfg import print_object_properties_value_in_table_form
 
 
 class Variable:
@@ -56,15 +57,7 @@ class Variable:
         self.immutable = False
 
     def show(self):
-        print('name: ', self.name)
-        print('value: ', self.value)
-        print('old_value: ', self.old_value)
-        print('default_value: ', self.default_value)
-        print('comment: ', self.comment)
-        print('output_string: ', self.output_string)
-        print('help_string: ', self.output_string)
-        print('search_pattern: ', self.search_pattern)
-        print('immutable: ', self.immutable)
+        print_object_properties_value_in_table_form(self)
 
 
 if __name__ == '__main__':

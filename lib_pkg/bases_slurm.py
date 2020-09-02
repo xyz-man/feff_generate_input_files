@@ -4,6 +4,8 @@
 * Last modified: 31.08.2020
 '''
 from lib_pkg.bases import Variable
+import prettytable as pt
+from cfg.class_cfg import Configuration, print_object_properties_value_in_table_form
 
 
 class SLURMVariable(Variable):
@@ -32,16 +34,8 @@ class SLURMVariable(Variable):
         self.search_pattern = ''
         self.immutable = False
 
-    def show(self):
-        print('name: ', self.name)
-        print('value: ', self.value)
-        print('old_value: ', self.old_value)
-        print('default_value: ', self.default_value)
-        print('comment: ', self.comment)
-        print('output_string: ', self.output_string)
-        print('help_string: ', self.help_string)
-        print('search_pattern: ', self.search_pattern)
-        print('immutable: ', self.immutable)
+    def show_properties(self):
+        print_object_properties_value_in_table_form(self)
 
 
 if __name__ == '__main__':
@@ -56,5 +50,6 @@ maximum of number tasks and to provide for sufficient resources. The default is 
 but note that the --cpus-per-task option will change this default.
     """
     obj.rebuild()
-    obj.show()
+    obj.show_properties()
+
 

@@ -13,7 +13,7 @@ from io import StringIO
 runningScriptDir = os.path.dirname(os.path.abspath(__file__))
 # get root project folder name:
 runningScriptDir = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
-PROJECT_FOLDER_PATH = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
+PROJECT_ROOT_DIRECTORY_PATH = os.path.split(os.path.dirname(os.path.abspath(__file__)))[0]
 
 
 def create_out_data_folder(main_folder_path, first_part_of_folder_name = ''):

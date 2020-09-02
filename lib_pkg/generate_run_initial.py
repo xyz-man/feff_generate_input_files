@@ -4,7 +4,7 @@
 * Last modified: 31.08.2020
 '''
 from tempfile import NamedTemporaryFile
-from cfg.config import *
+from cfg.class_cfg import Configuration
 from lib_pkg.bases_slurm import *
 import re
 from lib_pkg.dir_and_file_operations import *
@@ -13,7 +13,7 @@ from collections import OrderedDict as odict
 
 class SLURMVariablesReplacer:
     def __init__(self):
-        self.src_full_filename = PATH_TO_SRC_SLURM_RUN_FILE
+        self.src_full_filename = Configuration.PATH_TO_SRC_SLURM_RUN_FILE
         self.out_dir_path = None
         self.out_tmp_file = None
         self.out_base_filename = os.path.basename(self.src_full_filename)
@@ -24,7 +24,7 @@ class SLURMVariablesReplacer:
     def fill_vars_dict(self):
         obj = SLURMVariable()
         obj.name = 'ntasks'
-        obj.value = NUMBER_OF_TASKS
+        obj.value = Configuration.NUMBER_OF_TASKS
         obj.output_string_base = "#SBATCH --{name}={val}\n"
         obj.search_pattern_base = "#SBATCH --{}"
         obj.help_string = """--ntasks=<number>
@@ -91,8 +91,12 @@ class SLURMVariablesReplacer:
         self.fill_vars_dict()
         self.replace_values_in_file()
 
+    def show(self):
+        print_object_properties_value_in_table_form(self)
+
 
 if __name__ == '__main__':
     print('-> you run ', __file__, ' file in the main mode (Top-level script environment)')
     obj = SLURMVariablesReplacer()
-    obj.do_routine()
+    obj.show()
+    # obj.do_routine()

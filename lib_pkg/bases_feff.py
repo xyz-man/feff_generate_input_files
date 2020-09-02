@@ -8,11 +8,12 @@
 * e-mail: yuginboy@gmail.com
 * Last modified: 31.08.2020
 '''
+import logging
 from lib_pkg.bases import Variable
 import re
 import numpy as np
 import prettytable as pt
-from cfg.config import *
+from cfg.class_cfg import Configuration, print_object_properties_value_in_table_form
 
 
 class AtomDescription:
@@ -27,21 +28,27 @@ class AtomDescription:
     is_comment = False
 
     def get_values_from_line(self, line=None):
-        if line is not None:
-            coord = re.findall(r"[+\-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?", line)
-            coord_line = np.asarray(coord, dtype='float')
-            self.x = coord_line[0]
-            self.y = coord_line[1]
-            self.z = coord_line[2]
-            self.ipot = int(coord_line[3])
-            self.distance = coord_line[-1]
-            tag_match = re.findall(r"[A-Za-z0-9_.-]+", line)
-            self.tag = tag_match[4]
-            self.element_name = re.findall(r"[A-Z][a-z]?[0-9]?", line)[0]
+        try:
+            if line is not None:
+                coord = re.findall(r"[+\-]?(?:0|[1-9]\d*)(?:\.\d*)?(?:[eE][+\-]?\d+)?", line)
+                coord_line = np.asarray(coord, dtype='float')
+                self.x = coord_line[0]
+                self.y = coord_line[1]
+                self.z = coord_line[2]
+                self.ipot = int(coord_line[3])
+                self.distance = coord_line[-1]
+                tag_match = re.findall(r"[A-Za-z0-9_.-]+", line)
+                self.tag = tag_match[4]
+                self.element_name = re.findall(r"[A-Z][a-z]?[0-9]?", line)[0]
+        except Exception as err:
+            error_txt = 'AtomDescription: Can not parse input line: "{}" \n'.format(line)
+            logging.getLogger("error_logger").error(error_txt + repr(err))
+            print()
+            print(error_txt, repr(err))
 
     def generate_line(self):
         star = ' '
-        if self.distance > TARGET_ATOM_MAX_DISTANCE:
+        if self.distance > Configuration.TARGET_ATOM_MAX_DISTANCE:
             self.is_comment = True
         if self.is_comment:
             star = '*'
@@ -66,33 +73,13 @@ class AtomDescription:
         return self.out_line
 
     def show(self):
-        x = pt.PrettyTable([
-            'x',
-            'y',
-            'z',
-            'ipot',
-            'tag',
-            'distance',
-            'element',
-        ])
-        x.add_row(
-            [
-                self.x,
-                self.y,
-                self.z,
-                self.ipot,
-                self.tag,
-                self.distance,
-                self.element_name,
-            ]
-        )
-        print(x)
+        print_object_properties_value_in_table_form(self)
 
 
 class FEFFinputVariable(Variable):
     value = AtomDescription()
-    target_ipot = TARGET_ATOM_IPOT
-    target_tag = TARGET_ATOM_TAG
+    target_ipot = Configuration.TARGET_ATOM_IPOT
+    target_tag = Configuration.TARGET_ATOM_TAG
     output_string_base = ""
     search_pattern_base = "  {ipot}  {tag}."
     input_line = None
@@ -126,6 +113,7 @@ if __name__ == '__main__':
     obj.get_values_from_line(line)
     obj.show()
     obj.generate_line()
+    obj.show()
 
     obj2 = FEFFinputVariable()
     obj2.input_line = line
