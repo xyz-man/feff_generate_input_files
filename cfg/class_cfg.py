@@ -3,7 +3,6 @@
 * e-mail: yuginboy@gmail.com
 * Last modified: 02.09.2020
 '''
-import logging
 import datetime
 from cfg.settings import *
 from lib_pkg.dir_and_file_operations import PROJECT_ROOT_DIRECTORY_PATH
@@ -36,6 +35,7 @@ class Configuration:
     SRC_SLURM_RUN_FILE_NAME = SRC_SLURM_RUN_FILE_NAME
 
     PATH_TO_CONFIGURATION_DIRECTORY = None
+    PATH_TO_ROOT_PROJECT_DIRECTORY = None
     PATH_TO_SRC_FEFF_INPUT_FILE = None
     PATH_TO_SRC_SLURM_RUN_FILE = None
 
@@ -76,6 +76,7 @@ class Configuration:
             dir_path = Path(dir_path).parent
 
         cls.PATH_TO_CONFIGURATION_DIRECTORY = cfg_path
+        cls.PATH_TO_ROOT_PROJECT_DIRECTORY = dir_path
 
     @classmethod
     def init_feff_input_file(cls):
