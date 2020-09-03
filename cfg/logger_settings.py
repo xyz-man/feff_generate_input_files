@@ -44,9 +44,10 @@ If you do not want parent of any logger to capture and log1 the message then set
 '''
 
 import os
-from lib_pkg.dir_and_file_operations import PROJECT_ROOT_DIRECTORY_PATH
+from cfg.class_cfg import Configuration
 
-LOG_FOLDER_ABSOLUTE_PATH = os.path.join(PROJECT_ROOT_DIRECTORY_PATH, 'log', 'logging')
+LOG_FOLDER_ABSOLUTE_PATH = os.path.join(Configuration.PATH_TO_ROOT_PROJECT_DIRECTORY, 'log', 'logging')
+print('LOG_FOLDER_ABSOLUTE_PATH', LOG_FOLDER_ABSOLUTE_PATH)
 
 LOGGING = {
     'version': 1,
