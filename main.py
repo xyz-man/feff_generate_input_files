@@ -25,7 +25,7 @@ class Project:
     def is_inside_computation_limit(self):
         # check the computation restrictions
         out = False
-        if self.current_atomic_distance <= Configuration.TARGET_ATOM_MAX_DISTANCE:
+        if self.current_atomic_distance < Configuration.TARGET_ATOM_MAX_DISTANCE:
             out = True
         return out
 
@@ -55,10 +55,10 @@ class Project:
             shutil.move(sub_folder_path, os.path.join(self.project_dir_path, new_sub_folder_name))
             if not self.is_inside_computation_limit():
                 shutil.rmtree(os.path.join(self.project_dir_path, new_sub_folder_name))
-                print('*****'*10)
+                print('*****' * 10)
                 print('***  Atomic distance above the limit')
                 print('***  remove the last created directory: ', os.path.join(self.project_dir_path,
-                                                                             new_sub_folder_name))
+                                                                               new_sub_folder_name))
                 print('*****' * 10)
 
             if self.is_inside_computation_limit():

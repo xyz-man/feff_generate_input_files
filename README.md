@@ -144,3 +144,7 @@ If NFS is configured correctly on client hosts, the `mount` command shows that y
     
 ### 6. Setup configuration file
  Open `cfg/config.py` file and edit needed variables.  
+ 
+### 7. License
+
+**FEFF input files generator** has been created under the **GNU GPLv3 license**

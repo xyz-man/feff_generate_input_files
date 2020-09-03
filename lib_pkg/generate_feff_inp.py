@@ -97,8 +97,10 @@ class FEFFVariablesReplacer:
                                         self.atom_coordinate_y = value_dict.value.y
                                         self.atom_coordinate_z = value_dict.value.z
                                         current_file_line = value_dict.output_string
-                                        print('new line: ', current_file_line)
-                                        print('atom distance: ', self.atom_distance)
+                                        # print('new line: ', current_file_line)
+                                        # print('atom distance: ', self.atom_distance)
+                                        if self.atom_distance < 0.00000001:
+                                            current_file_line = ''
                                     else:
                                         current_file_line = ''
 
@@ -108,10 +110,16 @@ class FEFFVariablesReplacer:
                                         if not self.is_stop_event_happened:
                                             tmp_atom_obj = AtomDescription()
                                             tmp_atom_obj.get_values_from_line(current_file_line)
+
+                                            print('*****' * 10)
+                                            print('***  Line number above the limit.')
+                                            print('***  Set TARGET_ATOM_MAX_DISTANCE to new value')
+                                            print('***  TARGET_ATOM_MAX_DISTANCE Old: ',
+                                                  Configuration.TARGET_ATOM_MAX_DISTANCE)
+                                            print('***  TARGET_ATOM_MAX_DISTANCE New: ', tmp_atom_obj.distance)
+                                            print('*****' * 10)
                                             Configuration.TARGET_ATOM_MAX_DISTANCE = tmp_atom_obj.distance
                                             self.is_stop_event_happened = True
-                                        if Configuration.DEBUG:
-                                            print('current_file_line_number > MAXIMUM_LINE_NUMBER_OF_INPUT_FEFF_FILE')
                                         current_file_line = ''
                     fout.write(current_file_line.encode('utf8'))
                 # To make sure the content is written to disk at a given point, you can use file.flush
@@ -138,10 +146,10 @@ class FEFFVariablesReplacer:
                     # print(line)
                     if current_file_line.startswith(' ATOMS'):
                         is_atoms_block = True
-                        print('is_atoms_block: ', is_atoms_block)
+                        # print('is_atoms_block: ', is_atoms_block)
                     if current_file_line.startswith(' END'):
                         is_atoms_block = False
-                        print('is_atoms_block: ', is_atoms_block)
+                        # print('is_atoms_block: ', is_atoms_block)
 
                     if is_atoms_block:
                         current_atom_obj.get_values_from_line(current_file_line)
@@ -172,8 +180,8 @@ class FEFFVariablesReplacer:
         self.copy_src_file_to_out_dir()
         self.fill_vars_dict()
         self.replace_values_in_file()
-        print('before clean:')
-        sleep(5)
+        # print('before clean:')
+        # sleep(5)
         self.clean_atomic_coordinate_values_in_file()
 
     def show_properties(self):

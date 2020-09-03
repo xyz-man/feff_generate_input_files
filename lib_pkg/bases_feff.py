@@ -43,8 +43,9 @@ class AtomDescription:
         except Exception as err:
             error_txt = 'AtomDescription: Can not parse input line: "{}" \n'.format(line)
             logging.getLogger("error_logger").error(error_txt + repr(err))
-            print()
-            print(error_txt, repr(err))
+            if Configuration.DEBUG:
+                print()
+                print(error_txt, repr(err))
 
     def generate_line(self):
         star = ' '
