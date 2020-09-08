@@ -17,15 +17,17 @@ from cfg.class_cfg import Configuration, print_object_properties_value_in_table_
 
 
 class AtomDescription:
-    x = None
-    y = None
-    z = None
-    ipot = None
-    tag = None
-    element_name = None
-    distance = None
-    out_line = None
-    is_comment = False
+    def __init__(self):
+        self.x = None
+        self.y = None
+        self.z = None
+        self.ipot = None
+        self.tag = None
+        self.element_name = None
+        self.distance = None
+        self.out_line = None
+        self.out_line_for_zero_ipot = None
+        self.is_comment = False
 
     def get_values_from_line(self, line=None):
         try:
@@ -73,21 +75,53 @@ class AtomDescription:
         # print(self.out_line)
         return self.out_line
 
+    def generate_line_for_zero_ipot(self):
+        star = ' '
+        if self.distance > Configuration.TARGET_ATOM_MAX_DISTANCE:
+            self.is_comment = True
+        if self.is_comment:
+            star = '*'
+
+        space_num = 14 - len(self.tag)
+        if space_num < 1:
+            space_num = 1
+        space_txt = " "*space_num
+
+        self.out_line_for_zero_ipot = '{s}  {x:+.5f}   {y:+.5f}   {z:+.5f}  {ipot}  {tag}{spc}{dst:.5f}\n' \
+            .format(
+                    s=star,
+                    x=self.x,
+                    y=self.y,
+                    z=self.z,
+                    ipot=0,
+                    tag=self.tag,
+                    spc=space_txt,
+                    dst=self.distance,
+                    ).replace('+', ' ')
+        # print(self.out_line)
+        return self.out_line_for_zero_ipot
+
     def show(self):
         print_object_properties_value_in_table_form(self)
 
 
 class FEFFinputVariable(Variable):
-    value = AtomDescription()
-    target_ipot = Configuration.TARGET_ATOM_IPOT
-    target_tag = Configuration.TARGET_ATOM_TAG
-    output_string_base = ""
-    search_pattern_base = "  {ipot}  {tag}."
-    input_line = None
+    def __init__(self):
+        self.value = AtomDescription()
+        self.target_ipot = Configuration.TARGET_ATOM_IPOT
+        self.target_tag = Configuration.TARGET_ATOM_TAG
+        self.output_string_base = ""
+        self.output_string_base_for_zero_ipot = ""
+        self.search_pattern_base = "  {ipot}  {tag}."
+        self.input_line = None
 
     def create_output_string(self):
         self.output_string = self.value.generate_line()
         return self.output_string
+
+    def create_output_string_for_zero_ipot(self):
+        self.output_string_base_for_zero_ipot = self.value.generate_line_for_zero_ipot()
+        return self.output_string_base_for_zero_ipot
 
     def create_search_pattern(self):
         self.search_pattern = self.search_pattern_base.format(
@@ -101,6 +135,7 @@ class FEFFinputVariable(Variable):
         if self.input_line is not None:
             self.value.get_values_from_line(self.input_line)
             self.create_output_string()
+            self.create_output_string_for_zero_ipot()
             self.create_search_pattern()
         else:
             self.create_search_pattern()

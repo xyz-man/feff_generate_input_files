@@ -31,6 +31,13 @@ class Configuration:
     DEBUG = DEBUG
     ROOT_PROJECT_DIRECTORY_NAME = ROOT_PROJECT_DIRECTORY_NAME
 
+    TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE
+    list_of_procedure_changing_input_structure_types = [
+        'central_atom_is_stable_and_move_target_atom',
+        'target_atom_is_stable_and_move_central_atom'
+    ]
+
+    POLARIZATION = POLARIZATION
     SRC_FEFF_INPUT_FILE_NAME = SRC_FEFF_INPUT_FILE_NAME
     SRC_SLURM_RUN_FILE_NAME = SRC_SLURM_RUN_FILE_NAME
 
@@ -42,8 +49,12 @@ class Configuration:
     TARGET_ATOM_TAG = TARGET_ATOM_TAG
     TARGET_ATOM_IPOT = TARGET_ATOM_IPOT
 
+    CENTRAL_ATOM_TAG = CENTRAL_ATOM_TAG
+    CENTRAL_ATOM_IPOT = CENTRAL_ATOM_IPOT
+
     PROJECT_NAME = PROJECT_NAME
     PROJECT_OUT_DIRECTORY_PATH = PROJECT_OUT_DIRECTORY_PATH
+    PROJECT_CURRENT_OUT_DIRECTORY_PATH = None
 
     START_CALCULATION = START_CALCULATION
     TYPE_OF_CALCULATION = TYPE_OF_CALCULATION
@@ -96,6 +107,12 @@ class Configuration:
 
     @classmethod
     def init(cls):
+        if cls.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE not in \
+                cls.list_of_procedure_changing_input_structure_types:
+            cls.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = 'central_atom_is_stable_and_move_target_atom'
+            out_txt = 'The input variable is invalid. Change the variable to its default value: [{}]'\
+                .format(cls.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE)
+            print(out_txt)
         cls.init_cfg_folder()
         cls.init_feff_input_file()
         cls.init_slurm_run_file()

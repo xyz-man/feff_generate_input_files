@@ -17,7 +17,7 @@ from collections import OrderedDict as odict
 from time import sleep
 
 
-class FEFFVariablesReplacer:
+class FEFFVariablesReplacerMoveTargetAtom:
     def __init__(self):
         self.src_full_filename = Configuration.PATH_TO_SRC_FEFF_INPUT_FILE
         self.out_dir_path = None
@@ -26,7 +26,8 @@ class FEFFVariablesReplacer:
         self.out_base_filename = os.path.basename(self.src_full_filename)
         self.out_full_filename = None
         self.out_full_filename_before_clean = None
-        self.vars_dict = odict()
+        self.vars_dict_target_atom = odict()
+        self.vars_dict_central_atom = odict()
         self.current_file_line_number = 0
         self.target_atom_number = 0
         self.atom_distance = 0
@@ -37,11 +38,18 @@ class FEFFVariablesReplacer:
 
     def fill_vars_dict(self):
         obj = FEFFinputVariable()
-        obj.name = 'admixture'
+        obj.name = 'target_atom'
         obj.target_tag = Configuration.TARGET_ATOM_TAG
         obj.target_ipot = Configuration.TARGET_ATOM_IPOT
         obj.rebuild()
-        self.vars_dict[str(obj.name)] = obj
+        self.vars_dict_target_atom[str(obj.name)] = obj
+
+        obj = FEFFinputVariable()
+        obj.name = 'central_atom'
+        obj.target_tag = Configuration.CENTRAL_ATOM_TAG
+        obj.target_ipot = Configuration.CENTRAL_ATOM_IPOT
+        obj.rebuild()
+        self.vars_dict_central_atom[str(obj.name)] = obj
 
     def create_out_tmp_folder(self):
         if self.out_dir_path is None:
@@ -73,7 +81,7 @@ class FEFFVariablesReplacer:
             is_atoms_block = False
             with open(self.src_full_filename, 'r') as fin, \
                     self.out_tmp_file as fout:
-                wanted_atom_idx = 0
+                under_processing_atom_idx = 0
                 for current_file_line in fin:
                     self.current_file_line_number = self.current_file_line_number + 1
                     # print(line)
@@ -85,11 +93,11 @@ class FEFFVariablesReplacer:
                         # print('is_atoms_block: ', is_atoms_block)
 
                     if is_atoms_block:
-                        for key, value_dict in self.vars_dict.items():
+                        for key, value_dict in self.vars_dict_target_atom.items():
                             if not value_dict.immutable:
                                 if value_dict.search_pattern in current_file_line:
-                                    wanted_atom_idx = wanted_atom_idx + 1
-                                    if self.target_atom_number == wanted_atom_idx:
+                                    under_processing_atom_idx = under_processing_atom_idx + 1
+                                    if self.target_atom_number == under_processing_atom_idx:
                                         value_dict.input_line = current_file_line
                                         value_dict.rebuild()
                                         self.atom_distance = value_dict.value.distance
@@ -97,7 +105,7 @@ class FEFFVariablesReplacer:
                                         self.atom_coordinate_y = value_dict.value.y
                                         self.atom_coordinate_z = value_dict.value.z
                                         current_file_line = value_dict.output_string
-                                        # print('new line: ', current_file_line)
+                                        print('new line: ', current_file_line)
                                         # print('atom distance: ', self.atom_distance)
                                         if self.atom_distance < 0.00000001:
                                             current_file_line = ''
@@ -139,7 +147,7 @@ class FEFFVariablesReplacer:
             is_atoms_block = False
             with open(self.out_full_filename_before_clean, 'r') as fin, \
                     self.out_tmp_file_cleaned as fout:
-                wanted_atom_idx = 0
+                under_processing_atom_idx = 0
                 current_atom_obj = AtomDescription()
                 for current_file_line in fin:
                     self.current_file_line_number = self.current_file_line_number + 1
@@ -153,7 +161,7 @@ class FEFFVariablesReplacer:
 
                     if is_atoms_block:
                         current_atom_obj.get_values_from_line(current_file_line)
-                        for key, value_dict in self.vars_dict.items():
+                        for key, value_dict in self.vars_dict_target_atom.items():
                             if value_dict.search_pattern not in current_file_line:
                                 if (self.atom_distance == current_atom_obj.distance) and \
                                         (self.atom_coordinate_x == current_atom_obj.x) and \
@@ -190,7 +198,7 @@ class FEFFVariablesReplacer:
 
 if __name__ == '__main__':
     print('-> you run ', __file__, ' file in the main mode (Top-level script environment)')
-    obj = FEFFVariablesReplacer()
+    obj = FEFFVariablesReplacerMoveTargetAtom()
     obj.target_atom_number = 3
     # obj.do_routine()
     obj.show_properties()

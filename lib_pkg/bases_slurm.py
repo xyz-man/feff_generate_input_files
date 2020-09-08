@@ -4,7 +4,6 @@
 * Last modified: 31.08.2020
 '''
 from lib_pkg.bases import Variable
-import prettytable as pt
 from cfg.class_cfg import Configuration, print_object_properties_value_in_table_form
 
 

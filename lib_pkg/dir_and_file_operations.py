@@ -32,7 +32,7 @@ def create_out_data_folder(main_folder_path, first_part_of_folder_name = ''):
 
     while checkFile > 0:
 
-        out_data_folder_path = os.path.join( main_folder_path, first_part_of_folder_name + '%04d' % i )
+        out_data_folder_path = os.path.join( main_folder_path, first_part_of_folder_name + '{:04d}'.format(i))
         if  not (os.path.isdir(out_data_folder_path)):
             checkFile = 0
             os.makedirs(out_data_folder_path, exist_ok=True)
@@ -76,7 +76,7 @@ def list_of_folders(dirToScreens):
     :param dirToScreens: from which directory you want to take a list of the files
     :return:
     '''
-    files = [f for f in os.listdir(dirToScreens) if os.path.isdir(os.path.join(dirToScreens,f))]
+    files = [f for f in os.listdir(dirToScreens) if os.path.isdir(os.path.join(dirToScreens, f))]
     return sorted(files)
 
 
