@@ -65,7 +65,7 @@ class FEFFVariablesReplacerMoveTargetAtom:
     def generate_out_full_filename(self):
         # self.out_base_filename = os.path.basename(self.src_full_filename)
         self.out_full_filename = os.path.join(self.out_dir_path, 'feff.inp')
-        self.out_full_filename_before_clean = os.path.join(self.out_dir_path, 'feff_bifore_clean.inp')
+        self.out_full_filename_before_clean = os.path.join(self.out_dir_path, 'feff_before_clean.inp')
 
     def move_tmp_to_out_file(self):
         if (self.out_full_filename is not None) and (self.out_tmp_file is not None):
@@ -200,5 +200,5 @@ if __name__ == '__main__':
     print('-> you run ', __file__, ' file in the main mode (Top-level script environment)')
     obj = FEFFVariablesReplacerMoveTargetAtom()
     obj.target_atom_number = 3
-    # obj.do_routine()
+    obj.do_routine()
     obj.show_properties()

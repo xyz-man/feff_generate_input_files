@@ -6,6 +6,7 @@
 import logging
 from cfg.class_cfg import Configuration
 from lib_pkg.generate_move_target_atom_feff_inp import FEFFVariablesReplacerMoveTargetAtom
+from lib_pkg.generate_move_zero_ipot_atom_feff_inp import FEFFVariablesReplacerMoveZeroIpotAtom
 from lib_pkg.generate_run_initial import SLURMVariablesReplacer
 from lib_pkg.dir_and_file_operations import *
 from lib_pkg.bases_stored_config import StoredConfigVariable, VarObject
@@ -40,51 +41,58 @@ class Project:
         # start cycle for generate folders with feff.inp and run_initial.sl files:
         self.current_atomic_distance = 0
         target_atom_id = 1
-        if 'central_atom_is_stable_and_move_target_atom' in \
+        FEFFReplacerClass = None
+        sub_folder_name_txt = None
+        if 'move_target_atom' in \
                 Configuration.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
-            while self.is_inside_computation_limit():
-                sub_folder_path = create_out_data_folder(self.project_dir_path, first_part_of_folder_name='tmp')
+            FEFFReplacerClass = FEFFVariablesReplacerMoveTargetAtom
+        if 'move_zero_ipot_atom' in \
+                Configuration.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
+            FEFFReplacerClass = FEFFVariablesReplacerMoveZeroIpotAtom
 
-                obj_slurm = SLURMVariablesReplacer()
-                obj_slurm.out_dir_path = sub_folder_path
-                obj_slurm.job_name = "{}=id_{}".format(target_atom_id, Configuration.TARGET_ATOM_TAG)
-                obj_slurm.do_routine()
+        while self.is_inside_computation_limit():
+            sub_folder_path = create_out_data_folder(self.project_dir_path, first_part_of_folder_name='tmp')
 
-                obj_feff = FEFFVariablesReplacerMoveTargetAtom()
-                obj_feff.out_dir_path = sub_folder_path
-                obj_feff.target_atom_number = target_atom_id
-                obj_feff.do_routine()
+            obj_slurm = SLURMVariablesReplacer()
+            obj_slurm.out_dir_path = sub_folder_path
+            obj_slurm.job_name = "{}=id_{}".format(target_atom_id, Configuration.TARGET_ATOM_TAG)
+            obj_slurm.do_routine()
 
-                self.current_atomic_distance = obj_feff.atom_distance
-                new_sub_folder_name = "c={ctag}_t={ttag}_[central={ctag}_moves={ttag}]_p=[{pol}]_n={id:04d}_d={dst}"\
-                    .format(
-                    ctag=Configuration.CENTRAL_ATOM_TAG,
-                    ttag=Configuration.TARGET_ATOM_TAG,
-                    pol=Configuration.POLARIZATION,
-                    dst=self.current_atomic_distance,
-                    id=target_atom_id)
-                shutil.move(sub_folder_path, os.path.join(self.project_dir_path, new_sub_folder_name))
-                if not self.is_inside_computation_limit():
-                    shutil.rmtree(os.path.join(self.project_dir_path, new_sub_folder_name))
-                    print('*****' * 10)
-                    print('***  Atomic distance above the limit')
-                    print('***  remove the last created directory: ', os.path.join(self.project_dir_path,
-                                                                                   new_sub_folder_name))
-                    print('*****' * 10)
+            obj_feff = FEFFReplacerClass()
+            obj_feff.out_dir_path = sub_folder_path
+            obj_feff.target_atom_number = target_atom_id
+            obj_feff.do_routine()
 
-                if self.is_inside_computation_limit():
-                    # if distance is correct run sbatch:
-                    self.run_sbatch(
-                        dir_path=os.path.join(self.project_dir_path, new_sub_folder_name),
-                    )
-                    var_obj = VarObject()
-                    var_obj.add_variable_to_dict(name='id', value=target_atom_id)
-                    var_obj.add_variable_to_dict(name='distance', value=self.current_atomic_distance)
-                    var_obj.add_variable_to_dict(name='polarization', value=Configuration.POLARIZATION)
-                    var_obj.add_variable_to_dict(name='directory_name', value=new_sub_folder_name)
-                    self.config_obj.add_object_to_list_of_dicts(var_obj)
+            self.current_atomic_distance = obj_feff.atom_distance
+            new_sub_folder_name = "central=[{ctag}]_moves=[{ttag}]_p=[{pol}]_n={id:04d}_d={dst}"\
+                .format(
+                ctag=Configuration.CENTRAL_ATOM_TAG,
+                ttag=Configuration.TARGET_ATOM_TAG,
+                pol=Configuration.POLARIZATION,
+                dst=self.current_atomic_distance,
+                id=target_atom_id)
+            shutil.move(sub_folder_path, os.path.join(self.project_dir_path, new_sub_folder_name))
+            if not self.is_inside_computation_limit():
+                shutil.rmtree(os.path.join(self.project_dir_path, new_sub_folder_name))
+                print('*****' * 10)
+                print('***  Atomic distance above the limit')
+                print('***  remove the last created directory: ', os.path.join(self.project_dir_path,
+                                                                               new_sub_folder_name))
+                print('*****' * 10)
 
-                target_atom_id = target_atom_id + 1
+            if self.is_inside_computation_limit():
+                # if distance is correct run sbatch:
+                self.run_sbatch(
+                    dir_path=os.path.join(self.project_dir_path, new_sub_folder_name),
+                )
+                var_obj = VarObject()
+                var_obj.add_variable_to_dict(name='id', value=target_atom_id)
+                var_obj.add_variable_to_dict(name='distance', value=self.current_atomic_distance)
+                var_obj.add_variable_to_dict(name='polarization', value=Configuration.POLARIZATION)
+                var_obj.add_variable_to_dict(name='directory_name', value=new_sub_folder_name)
+                self.config_obj.add_object_to_list_of_dicts(var_obj)
+
+            target_atom_id = target_atom_id + 1
         self.config_obj.store_data_to_pickle_file()
 
     def run_sbatch(self, dir_path=None):

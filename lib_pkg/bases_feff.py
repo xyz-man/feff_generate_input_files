@@ -114,6 +114,8 @@ class FEFFinputVariable(Variable):
         self.output_string_base_for_zero_ipot = ""
         self.search_pattern_base = "  {ipot}  {tag}."
         self.input_line = None
+        self.search_pattern = None
+        self.search_pattern_zero_ipot = None
 
     def create_output_string(self):
         self.output_string = self.value.generate_line()
@@ -127,7 +129,10 @@ class FEFFinputVariable(Variable):
         self.search_pattern = self.search_pattern_base.format(
             ipot=self.target_ipot,
             tag=self.target_tag)
-        return self.search_pattern
+        self.search_pattern_zero_ipot = self.search_pattern_base.format(
+            ipot=0,
+            tag=self.target_tag)
+        return self.search_pattern, self.search_pattern_zero_ipot
 
     def rebuild(self):
         if self.reset_to_default_value:

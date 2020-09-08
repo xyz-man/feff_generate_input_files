@@ -7,8 +7,46 @@ import datetime
 from cfg.settings import *
 from lib_pkg.dir_and_file_operations import PROJECT_ROOT_DIRECTORY_PATH
 import os
+from copy import deepcopy
 from pathlib import Path
 import prettytable as pt
+
+try:
+    from cfg.settings import TARGET_ATOM_TAG
+except ImportError:
+    print('Import Error: TARGET_ATOM_TAG is None')
+    TARGET_ATOM_TAG = None
+
+try:
+    from cfg.settings import TARGET_ATOM_IPOT
+except ImportError:
+    print('Import Error: TARGET_ATOM_IPOT is None')
+    TARGET_ATOM_IPOT = None
+
+try:
+    from cfg.settings import CENTRAL_ATOM_TAG
+except ImportError:
+    print('Import Error: CENTRAL_ATOM_TAG is None')
+    CENTRAL_ATOM_TAG = None
+
+try:
+    from cfg.settings import CENTRAL_ATOM_IPOT
+except ImportError:
+    print('Import Error: CENTRAL_ATOM_IPOT is None')
+    CENTRAL_ATOM_IPOT = None
+
+try:
+    from cfg.settings import ZERO_IPOT_ATOM_TAG
+except ImportError:
+    print('Import Error: ZERO_IPOT_ATOM_TAG is None')
+    ZERO_IPOT_ATOM_TAG = None
+
+try:
+    from cfg.settings import ZERO_IPOT_ATOM_IPOT
+except ImportError:
+    print('Import Error: ZERO_IPOT_ATOM_IPOT is None')
+    ZERO_IPOT_ATOM_IPOT = None
+
 
 
 def print_object_properties_value_in_table_form(obj):
@@ -27,14 +65,23 @@ def print_object_properties_value_in_table_form(obj):
     print(table)
 
 
+def update_one_value_to_another_value(a, b):
+    if a is not None and b is None:
+        b = deepcopy(a)
+    if b is not None and a is None:
+       a = deepcopy(b)
+
+    return a, b
+
+
 class Configuration:
     DEBUG = DEBUG
     ROOT_PROJECT_DIRECTORY_NAME = ROOT_PROJECT_DIRECTORY_NAME
 
     TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE
     list_of_procedure_changing_input_structure_types = [
-        'central_atom_is_stable_and_move_target_atom',
-        'target_atom_is_stable_and_move_central_atom'
+        'move_target_atom',
+        'move_zero_ipot_atom'
     ]
 
     POLARIZATION = POLARIZATION
@@ -49,8 +96,11 @@ class Configuration:
     TARGET_ATOM_TAG = TARGET_ATOM_TAG
     TARGET_ATOM_IPOT = TARGET_ATOM_IPOT
 
-    CENTRAL_ATOM_TAG = CENTRAL_ATOM_TAG
+    CENTRAL_ATOM_TAG  = CENTRAL_ATOM_TAG
     CENTRAL_ATOM_IPOT = CENTRAL_ATOM_IPOT
+
+    ZERO_IPOT_ATOM_TAG  = ZERO_IPOT_ATOM_TAG
+    ZERO_IPOT_ATOM_IPOT = ZERO_IPOT_ATOM_IPOT
 
     PROJECT_NAME = PROJECT_NAME
     PROJECT_OUT_DIRECTORY_PATH = PROJECT_OUT_DIRECTORY_PATH
@@ -109,10 +159,26 @@ class Configuration:
     def init(cls):
         if cls.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE not in \
                 cls.list_of_procedure_changing_input_structure_types:
-            cls.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = 'central_atom_is_stable_and_move_target_atom'
+            cls.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = 'move_target_atom'
             out_txt = 'The input variable is invalid. Change the variable to its default value: [{}]'\
                 .format(cls.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE)
             print(out_txt)
+            if cls.TARGET_ATOM_TAG is None:
+                if cls.ZERO_IPOT_ATOM_TAG is not None:
+                    cls.TARGET_ATOM_TAG, cls.ZERO_IPOT_ATOM_TAG = update_one_value_to_another_value(
+                        cls.TARGET_ATOM_TAG, cls.ZERO_IPOT_ATOM_TAG)
+                elif cls.CENTRAL_ATOM_TAG is not None:
+                    cls.TARGET_ATOM_TAG, cls.CENTRAL_ATOM_TAG = update_one_value_to_another_value(cls.TARGET_ATOM_TAG,
+                                                                                                cls.CENTRAL_ATOM_TAG)
+
+        if cls.TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE == 'move_zero_ipot_atom':
+            cls.TARGET_ATOM_TAG = cls.ZERO_IPOT_ATOM_TAG
+            print('TARGET_ATOM_TAG = ZERO_IPOT_ATOM_TAG')
+            print('TARGET_ATOM_TAG = {}'.format(cls.TARGET_ATOM_TAG))
+            cls.TARGET_ATOM_IPOT = cls.ZERO_IPOT_ATOM_IPOT
+            print('TARGET_ATOM_IPOT = ZERO_IPOT_ATOM_IPOT')
+            print('TARGET_ATOM_IPOT = ', cls.TARGET_ATOM_IPOT)
+
         cls.init_cfg_folder()
         cls.init_feff_input_file()
         cls.init_slurm_run_file()

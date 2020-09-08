@@ -13,7 +13,7 @@ from time import sleep
 from lib_pkg.generate_move_target_atom_feff_inp import FEFFVariablesReplacerMoveTargetAtom
 
 
-class FEFFVariablesReplacerMoveTheroIpotAtom(FEFFVariablesReplacerMoveTargetAtom):
+class FEFFVariablesReplacerMoveZeroIpotAtom(FEFFVariablesReplacerMoveTargetAtom):
     '''
     move atom with IPOT=0
     '''
@@ -44,6 +44,7 @@ class FEFFVariablesReplacerMoveTheroIpotAtom(FEFFVariablesReplacerMoveTargetAtom
                                             target_value_dict.input_line = current_file_line
                                             target_value_dict.rebuild()
                                             self.atom_distance = target_value_dict.value.distance
+                                            # print('atom_distance = ', self.atom_distance)
                                             self.atom_coordinate_x = target_value_dict.value.x
                                             self.atom_coordinate_y = target_value_dict.value.y
                                             self.atom_coordinate_z = target_value_dict.value.z
@@ -78,14 +79,14 @@ class FEFFVariablesReplacerMoveTheroIpotAtom(FEFFVariablesReplacerMoveTargetAtom
                                     if central_atom_value_dict.search_pattern in current_file_line:
                                         central_atom_value_dict.input_line = current_file_line
                                         central_atom_value_dict.rebuild()
-                                        self.atom_distance = central_atom_value_dict.value.distance
-                                        self.atom_coordinate_x = central_atom_value_dict.value.x
-                                        self.atom_coordinate_y = central_atom_value_dict.value.y
-                                        self.atom_coordinate_z = central_atom_value_dict.value.z
+                                        # self.atom_distance = central_atom_value_dict.value.distance
+                                        # self.atom_coordinate_x = central_atom_value_dict.value.x
+                                        # self.atom_coordinate_y = central_atom_value_dict.value.y
+                                        # self.atom_coordinate_z = central_atom_value_dict.value.z
                                         current_file_line = central_atom_value_dict.output_string
                                         # print('new line: ', current_file_line)
                                         # print('atom distance: ', self.atom_distance)
-                                        if self.atom_distance > 0.00000001:
+                                        if central_atom_value_dict.value.distance > 0.00000001:
                                             current_file_line = ''
 
                     fout.write(current_file_line.encode('utf8'))
@@ -120,15 +121,17 @@ class FEFFVariablesReplacerMoveTheroIpotAtom(FEFFVariablesReplacerMoveTargetAtom
 
                     if is_atoms_block:
                         current_atom_obj.get_values_from_line(current_file_line)
-                        for key, value_dict in self.vars_dict_central_atom.items():
-                            if value_dict.search_pattern not in current_file_line:
-                                if (self.atom_distance == current_atom_obj.distance) and \
-                                        (self.atom_coordinate_x == current_atom_obj.x) and \
-                                        (self.atom_coordinate_y == current_atom_obj.y) and \
-                                        (self.atom_coordinate_z == current_atom_obj.z):
-                                    current_file_line = ''
+                        # for key, value_dict in self.vars_dict_central_atom.items():
+                        #     if value_dict.search_pattern not in current_file_line:
+                        #         if (self.atom_distance == current_atom_obj.distance) and \
+                        #                 (self.atom_coordinate_x == current_atom_obj.x) and \
+                        #                 (self.atom_coordinate_y == current_atom_obj.y) and \
+                        #                 (self.atom_coordinate_z == current_atom_obj.z):
+                        #             current_file_line = ''
                         for key, value_dict in self.vars_dict_target_atom.items():
-                            if value_dict.search_pattern not in current_file_line:
+                            if value_dict.search_pattern_zero_ipot not in current_file_line:
+                                # print('value_dict.search_pattern', value_dict.search_pattern)
+                                # print('current_file_line:', current_file_line)
                                 if (self.atom_distance == current_atom_obj.distance) and \
                                         (self.atom_coordinate_x == current_atom_obj.x) and \
                                         (self.atom_coordinate_y == current_atom_obj.y) and \
@@ -154,7 +157,7 @@ class FEFFVariablesReplacerMoveTheroIpotAtom(FEFFVariablesReplacerMoveTargetAtom
         self.copy_src_file_to_out_dir()
         self.fill_vars_dict()
         self.replace_values_in_file()
-        # print('before clean:')
+        print('before clean:')
         # sleep(5)
         self.clean_atomic_coordinate_values_in_file()
 
@@ -164,7 +167,7 @@ class FEFFVariablesReplacerMoveTheroIpotAtom(FEFFVariablesReplacerMoveTargetAtom
 
 if __name__ == '__main__':
     print('-> you run ', __file__, ' file in the main mode (Top-level script environment)')
-    obj = FEFFVariablesReplacerMoveTheroIpotAtom()
-    obj.target_atom_number = 6
+    obj = FEFFVariablesReplacerMoveZeroIpotAtom()
+    obj.target_atom_number = 1
     obj.do_routine()
     obj.show_properties()
