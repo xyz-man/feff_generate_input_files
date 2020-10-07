@@ -36,11 +36,12 @@ if 'move_target_atom' == TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
 
 
 if 'move_zero_ipot_atom' == TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
-    POLARIZATION = 103
+    POLARIZATION = 100
     # CENTRAL_ATOM_TAG = 'Yb-octa'
     # CENTRAL_ATOM_TAG = 'Yb-tetra'
     # CENTRAL_ATOM_TAG = 'Yb-subZn'
-    CENTRAL_ATOM_TAG = 'Yb-subO'
+    # CENTRAL_ATOM_TAG = 'Yb-subO'
+    CENTRAL_ATOM_TAG = 'Zn-cent'
 
     CENTRAL_ATOM_IPOT = 3
     if 'sub' not in CENTRAL_ATOM_TAG:
@@ -49,6 +50,11 @@ if 'move_zero_ipot_atom' == TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
     if 'sub' in CENTRAL_ATOM_TAG:
         SRC_FEFF_INPUT_FILE_NAME = 'feff_ZnO-s-{ctag}_c=Yb_m=O_{pol}.inp'.format(ctag=CENTRAL_ATOM_TAG,
                                                                                  pol=POLARIZATION)
+
+    if 'cent' in CENTRAL_ATOM_TAG:
+        SRC_FEFF_INPUT_FILE_NAME = 'feff_ZnO-ideal_c={ctag}_m=O_{pol}.inp'.format(ctag=CENTRAL_ATOM_TAG,
+                                                                                 pol=POLARIZATION)
+
 
     ZERO_IPOT_ATOM_TAG = 'O'
     ZERO_IPOT_ATOM_IPOT = 2
@@ -60,6 +66,11 @@ if 'move_zero_ipot_atom' == TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
             pol=POLARIZATION)
     if 'sub' in CENTRAL_ATOM_TAG:
         PROJECT_NAME = 'ZnO_sub=[{ctag}]_m={ttag}_c={ctag}_p=[{pol}]'.format(
+            ctag=CENTRAL_ATOM_TAG,
+            ttag=ZERO_IPOT_ATOM_TAG,
+            pol=POLARIZATION)
+    if 'cent' in CENTRAL_ATOM_TAG:
+        PROJECT_NAME = 'ZnO_ideal_m={ttag}_c={ctag}_p=[{pol}]'.format(
             ctag=CENTRAL_ATOM_TAG,
             ttag=ZERO_IPOT_ATOM_TAG,
             pol=POLARIZATION)
@@ -78,12 +89,12 @@ TYPE_OF_CALCULATION = 'remote'
 # if TYPE_OF_CALCULATION='remote':
 # if TYPE_OF_CALCULATION='remote' make sure PROJECT_DIR_PATH is located in the shared folder with the remote host
 PATH_TO_SHARE_PROJECT_FOLDER_ON_REMOTE_HOST = '/mnt/nfsv4/abel_share/free_share/ZnO/'
-SSH_COMMAND_CONNECT_TO_REMOTE_HOST = 'ssh wien2k@10.88.0.245'  # wien2k_abel
+SSH_COMMAND_CONNECT_TO_REMOTE_HOST = 'ssh wien2k@10.88.0.245'  # wien2kabel
 # SSH_COMMAND_CONNECT_TO_REMOTE_HOST = 'ssh wien2k@10.88.0.244'  # wien2k_paradox
 
 # --- START Block: Computation Limit -----
 # max distance for structure rebuild procedure:
-TARGET_ATOM_MAX_DISTANCE = 6
+TARGET_ATOM_MAX_DISTANCE = 7
 MAXIMUM_LINE_NUMBER_OF_INPUT_FEFF_FILE = None
 # --- END Block: Computation Limit -----
 
@@ -106,13 +117,17 @@ if DEBUG:
         # CENTRAL_ATOM_TAG = 'Yb-octa'
         # CENTRAL_ATOM_TAG = 'Yb-tetra'
         # CENTRAL_ATOM_TAG = 'Yb-subZn'
-        CENTRAL_ATOM_TAG = 'Yb-subO'
+        # CENTRAL_ATOM_TAG = 'Yb-subO'
+        CENTRAL_ATOM_TAG = 'Zn-cent'
         if 'sub' not in CENTRAL_ATOM_TAG:
             SRC_FEFF_INPUT_FILE_NAME = 'feff_ZnO-i-{ctag}_c=Yb_m=O_{pol}.inp'.format(ctag=CENTRAL_ATOM_TAG,
                                                                                      pol=POLARIZATION)
         if 'sub' in CENTRAL_ATOM_TAG:
             SRC_FEFF_INPUT_FILE_NAME = 'feff_ZnO-s-{ctag}_c=Yb_m=O_{pol}.inp'.format(ctag=CENTRAL_ATOM_TAG,
                                                                                      pol=POLARIZATION)
+        if 'cent' in CENTRAL_ATOM_TAG:
+            SRC_FEFF_INPUT_FILE_NAME = 'feff_ZnO-ideal_c={ctag}_m=O_{pol}.inp'.format(ctag=CENTRAL_ATOM_TAG,
+                                                                                      pol=POLARIZATION)
         CENTRAL_ATOM_IPOT = 3
 
         ZERO_IPOT_ATOM_TAG = 'O'
@@ -125,6 +140,11 @@ if DEBUG:
                 pol=POLARIZATION)
         if 'sub' in CENTRAL_ATOM_TAG:
             PROJECT_NAME = 'ZnO_sub=[{ctag}]_m={ttag}_c={ctag}_p=[{pol}]'.format(
+                ctag=CENTRAL_ATOM_TAG,
+                ttag=ZERO_IPOT_ATOM_TAG,
+                pol=POLARIZATION)
+        if 'cent' in CENTRAL_ATOM_TAG:
+            PROJECT_NAME = 'ZnO_ideal_m={ttag}_c={ctag}_p=[{pol}]'.format(
                 ctag=CENTRAL_ATOM_TAG,
                 ttag=ZERO_IPOT_ATOM_TAG,
                 pol=POLARIZATION)
