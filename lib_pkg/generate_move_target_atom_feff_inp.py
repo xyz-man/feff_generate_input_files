@@ -9,12 +9,15 @@
 * Last modified: 31.08.2020
 '''
 import logging
+from cfg.class_cfg import Configuration, CalculationType
 from tempfile import NamedTemporaryFile
 from lib_pkg.bases_feff import *
 import re
 from lib_pkg.dir_and_file_operations import *
 from collections import OrderedDict as odict
 from time import sleep
+import shutil
+import subprocess
 
 
 class FEFFVariablesReplacerMoveTargetAtom:
@@ -69,7 +72,13 @@ class FEFFVariablesReplacerMoveTargetAtom:
 
     def move_tmp_to_out_file(self):
         if (self.out_full_filename is not None) and (self.out_tmp_file is not None):
-            shutil.move(self.out_tmp_file, self.out_full_filename)
+            if Configuration.TYPE_OF_CALCULATION is CalculationType.REMOTE_BY_SSH:
+                Configuration.scp_move_file_to_remote_host(
+                    local_host_file_path=self.out_tmp_file,
+                    remote_host_out_file_path=self.out_full_filename
+                )
+            else:
+                shutil.move(self.out_tmp_file, self.out_full_filename)
 
     def copy_src_file_to_out_dir(self):
         if (self.src_full_filename is not None) and (self.out_dir_path is not None):

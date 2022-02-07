@@ -6,6 +6,7 @@
 import logging
 from lib_pkg.dir_and_file_operations import PROJECT_ROOT_DIRECTORY_PATH, get_upper_folder_name
 import os
+import numpy as np
 
 
 DEBUG = False
@@ -16,9 +17,23 @@ ROOT_PROJECT_DIRECTORY_NAME = 'feff_generate_input_files'
 # target_atom_is_stable_and_move_zero_ipot_atom
 TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = 'move_target_atom'
 TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = 'move_zero_ipot_atom'
+# TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = 'change_crystal_a_parameter'
+# TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = 'change_crystal_b_parameter'
+# TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = 'change_crystal_c_parameter'
+TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE = 'change_crystal_abc_parameters'
 
 print('PROJECT_FOLDER_PATH:', PROJECT_ROOT_DIRECTORY_PATH)
 SRC_SLURM_RUN_FILE_NAME = 'run_initial.sl'
+
+if "change_crystal_abc_parameters" in TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
+    delta = 0.1533
+    N_STEPS = 11
+    LATTICE_A_RANGE = np.linspace(3.25330 - delta, 3.3, N_STEPS)
+    LATTICE_B_RANGE = np.linspace(3.25330 - delta, 3.3, N_STEPS)
+    LATTICE_C_RANGE = np.linspace(5.20730 - 0.1073, 5.3, N_STEPS)
+    PROJECT_NAME = 'ZnO_abc_lattice_{nst}x{nst}'.format(nst=N_STEPS)
+    SRC_FEFF_INPUT_FILE_NAME = 'feff_ZnO_ideal_simple_100.inp'
+    POLARIZATION = 100
 
 if 'move_target_atom' == TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
     POLARIZATION = 103
@@ -39,9 +54,9 @@ if 'move_zero_ipot_atom' == TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
     POLARIZATION = 100
     # CENTRAL_ATOM_TAG = 'Yb-octa'
     # CENTRAL_ATOM_TAG = 'Yb-tetra'
-    # CENTRAL_ATOM_TAG = 'Yb-subZn'
+    CENTRAL_ATOM_TAG = 'Yb-subZn'
     # CENTRAL_ATOM_TAG = 'Yb-subO'
-    CENTRAL_ATOM_TAG = 'Zn-cent'
+    # CENTRAL_ATOM_TAG = 'Zn-cent'
 
     CENTRAL_ATOM_IPOT = 3
     if 'sub' not in CENTRAL_ATOM_TAG:
@@ -77,24 +92,27 @@ if 'move_zero_ipot_atom' == TYPE_OF_PROCEDURE_CHANGING_INPUT_STRUCTURE:
 
 # ------------------ End "move_zero_ipot_atom" ---------------
 
-PROJECT_OUT_DIRECTORY_PATH = '/mnt/nfsv4/abel_share/free_share/ZnO/'
+PROJECT_OUT_DIRECTORY_PATH_ON_LOCAL_HOST = '/home/yugin/calc/ZnO/'
+PROJECT_OUT_DIRECTORY_PATH_ON_REMOTE_HOST = '/home/wien2k/calc/ZnO/'
 
 # start feff calculations by using SLURM sbatch command:
 START_CALCULATION = True
 
 # local/remote:
 # TYPE_OF_CALCULATION = 'local'
-TYPE_OF_CALCULATION = 'remote'
+# TYPE_OF_CALCULATION = 'remote'
+TYPE_OF_CALCULATION = 'remote_ssh'
 
 # if TYPE_OF_CALCULATION='remote':
 # if TYPE_OF_CALCULATION='remote' make sure PROJECT_DIR_PATH is located in the shared folder with the remote host
-PATH_TO_SHARE_PROJECT_FOLDER_ON_REMOTE_HOST = '/mnt/nfsv4/abel_share/free_share/ZnO/'
-SSH_COMMAND_CONNECT_TO_REMOTE_HOST = 'ssh wien2k@10.88.0.245'  # wien2kabel
-# SSH_COMMAND_CONNECT_TO_REMOTE_HOST = 'ssh wien2k@10.88.0.244'  # wien2k_paradox
+# PATH_TO_SHARE_PROJECT_FOLDER_ON_REMOTE_HOST = '/mnt/nfsv4/abel_share/free_share/ZnO/'
+PATH_TO_SHARE_PROJECT_FOLDER_ON_REMOTE_HOST = '/home/wien2k/calc/ZnO/'
+# SSH_COMMAND_CONNECT_TO_REMOTE_HOST = 'ssh wien2k@10.88.0.245'  # wien2kabel
+SSH_COMMAND_CONNECT_TO_REMOTE_HOST = 'ssh wien2k@10.88.0.244'  # wien2k_paradox
 
 # --- START Block: Computation Limit -----
 # max distance for structure rebuild procedure:
-TARGET_ATOM_MAX_DISTANCE = 7
+TARGET_ATOM_MAX_DISTANCE = 12
 MAXIMUM_LINE_NUMBER_OF_INPUT_FEFF_FILE = None
 # --- END Block: Computation Limit -----
 

@@ -4,9 +4,10 @@
 * Last modified: 31.08.2020
 '''
 import logging
-from cfg.class_cfg import Configuration
+from cfg.class_cfg import Configuration, CalculationType
 from lib_pkg.generate_move_target_atom_feff_inp import FEFFVariablesReplacerMoveTargetAtom
 from lib_pkg.generate_move_zero_ipot_atom_feff_inp import FEFFVariablesReplacerMoveZeroIpotAtom
+from lib_pkg.generate_changes_in_lattice_param import FEFFVariablesReplacerChangeLatticeParam
 from lib_pkg.generate_run_initial import SLURMVariablesReplacer
 from lib_pkg.dir_and_file_operations import *
 from lib_pkg.bases_stored_config import StoredConfigVariable, VarObject
@@ -17,16 +18,27 @@ import subprocess
 class Project:
     def __init__(self):
         self.name = Configuration.PROJECT_NAME
-        self.project_dir_path = Configuration.PROJECT_CURRENT_OUT_DIRECTORY_PATH
+        self.project_dir_path = Configuration.PROJECT_CURRENT_OUT_LOCAL_HOST_DIRECTORY_PATH
         self.current_atomic_distance = None
+        self.current_cycle_index = 0
         self.config_obj = StoredConfigVariable()
+        # perform feff calculations immediately:
+        self.does_the_feff_calculation_start = True
 
     def init(self):
         if self.project_dir_path is None:
-            self.project_dir_path = create_out_data_folder(Configuration.PROJECT_OUT_DIRECTORY_PATH,
+            self.project_dir_path = create_out_data_folder(Configuration.PROJECT_OUT_DIRECTORY_PATH_ON_LOCAL_HOST,
                                                            first_part_of_folder_name=self.name)
-            Configuration.PROJECT_CURRENT_OUT_DIRECTORY_PATH = self.project_dir_path
-            self.config_obj.dir_path = Configuration.PROJECT_CURRENT_OUT_DIRECTORY_PATH
+            Configuration.PROJECT_CURRENT_OUT_LOCAL_HOST_DIRECTORY_PATH = self.project_dir_path
+            if Configuration.TYPE_OF_CALCULATION is CalculationType.REMOTE_BY_SSH:
+                Configuration.PROJECT_CURRENT_OUT_REMOTE_HOST_DIRECTORY_PATH = os.path.join(
+                    Configuration.PROJECT_OUT_DIRECTORY_PATH_ON_REMOTE_HOST,
+                    os.path.basename(self.project_dir_path)
+                )
+                Configuration.create_dir_on_remote_host(
+                    Configuration.PROJECT_CURRENT_OUT_REMOTE_HOST_DIRECTORY_PATH
+                )
+            self.config_obj.dir_path = Configuration.PROJECT_CURRENT_OUT_LOCAL_HOST_DIRECTORY_PATH
             print('project_dir_path:', self.project_dir_path)
 
     def is_inside_computation_limit(self):
@@ -35,6 +47,21 @@ class Project:
         if self.current_atomic_distance < Configuration.TARGET_ATOM_MAX_DISTANCE:
             out = True
         return out
+
+    def move_temp_dir_to_specified_directory(self, dir_path=None, where_to_move_dir_path=None):
+        shutil.move(dir_path, where_to_move_dir_path)
+        if Configuration.TYPE_OF_CALCULATION is CalculationType.REMOTE_BY_SSH:
+            remote_host_out_dir = os.path.join(
+                Configuration.PROJECT_OUT_DIRECTORY_PATH_ON_REMOTE_HOST,
+                os.path.basename(os.path.dirname(where_to_move_dir_path)),
+                # os.path.basename(
+                #     where_to_move_dir_path
+                # )
+            )
+            Configuration.scp_move_directory_to_remote_host(
+                local_host_dir_path=where_to_move_dir_path,
+                remote_host_out_dir_path=remote_host_out_dir,
+            )
 
     def run(self):
         self.init()
@@ -51,6 +78,7 @@ class Project:
             FEFFReplacerClass = FEFFVariablesReplacerMoveZeroIpotAtom
 
         while self.is_inside_computation_limit():
+            self.current_cycle_index += 1
             sub_folder_path = create_out_data_folder(self.project_dir_path, first_part_of_folder_name='tmp')
 
             obj_slurm = SLURMVariablesReplacer()
@@ -71,7 +99,12 @@ class Project:
                 pol=Configuration.POLARIZATION,
                 dst=self.current_atomic_distance,
                 id=target_atom_id)
-            shutil.move(sub_folder_path, os.path.join(self.project_dir_path, new_sub_folder_name))
+
+            # shutil.move(sub_folder_path, os.path.join(self.project_dir_path, new_sub_folder_name))
+            self.move_temp_dir_to_specified_directory(
+                dir_path=sub_folder_path,
+                where_to_move_dir_path=os.path.join(self.project_dir_path, new_sub_folder_name)
+            )
             if not self.is_inside_computation_limit():
                 shutil.rmtree(os.path.join(self.project_dir_path, new_sub_folder_name))
                 print('*****' * 10)
@@ -82,9 +115,10 @@ class Project:
 
             if self.is_inside_computation_limit():
                 # if distance is correct run sbatch:
-                self.run_sbatch(
-                    dir_path=os.path.join(self.project_dir_path, new_sub_folder_name),
-                )
+                if self.does_the_feff_calculation_start:
+                    self.run_sbatch(
+                        dir_path=os.path.join(self.project_dir_path, new_sub_folder_name),
+                    )
                 var_obj = VarObject()
                 var_obj.add_variable_to_dict(name='id', value=target_atom_id)
                 var_obj.add_variable_to_dict(name='distance', value=self.current_atomic_distance)
@@ -98,10 +132,24 @@ class Project:
     def run_sbatch(self, dir_path=None):
         if Configuration.START_CALCULATION:
             if dir_path is not None:
-                if 'local' == Configuration.TYPE_OF_CALCULATION:
+                if Configuration.TYPE_OF_CALCULATION is CalculationType.LOCAL:
                     os.chdir(dir_path)
                     subprocess.call('sbatch ./run_initial.sl', shell=True)
-                if 'remote' == Configuration.TYPE_OF_CALCULATION:
+
+                if Configuration.TYPE_OF_CALCULATION is CalculationType.REMOTE_BY_NFS_AND_SSH:
+                    dir_path_on_remote_host = os.path.join(
+                        Configuration.PATH_TO_SHARE_PROJECT_FOLDER_ON_REMOTE_HOST,
+                        get_upper_folder_name(dir_path),
+                        os.path.basename(dir_path),
+                    )
+                    print('dir_path_on_remote_host: ', dir_path_on_remote_host)
+                    ssh_command = '{ssh} << EOF \n cd {dir}\n pwd\n sbatch ./run_initial.sl \nEOF'.format(
+                        ssh=Configuration.SSH_COMMAND_CONNECT_TO_REMOTE_HOST,
+                        dir=dir_path_on_remote_host,
+                    )
+                    subprocess.call(ssh_command, shell=True)
+
+                if Configuration.TYPE_OF_CALCULATION is CalculationType.REMOTE_BY_SSH:
                     dir_path_on_remote_host = os.path.join(
                         Configuration.PATH_TO_SHARE_PROJECT_FOLDER_ON_REMOTE_HOST,
                         get_upper_folder_name(dir_path),
@@ -118,6 +166,7 @@ class Project:
 if __name__ == '__main__':
     print('-> you run ', __file__, ' file in the main mode (Top-level script environment)')
     obj = Project()
+    obj.does_the_feff_calculation_start = False
     obj.run()
     obj.config_obj.load_data_from_pickle_file()
     print()

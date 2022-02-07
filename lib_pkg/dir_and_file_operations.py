@@ -137,6 +137,20 @@ def delete_all_files_in_folder(folder):
     return None
 
 
+def delete_file(filepath):
+    if os.path.isfile(filepath):
+        os.remove(filepath)
+    else:
+        raise ValueError("file {} is not a file or dir.".format(filepath))
+
+
+def delete_folder(dir_path):
+    if os.path.isdir(dir_path):
+        shutil.rmtree(dir_path)  # remove dir and all contains
+    else:
+        raise ValueError("directory {} is not a file or dir.".format(dir_path))
+
+
 def get_upper_folder_name(file_path):
     # return only a directory name when file is placed
     return os.path.split(os.path.split(os.path.normpath(file_path))[0])[1]
